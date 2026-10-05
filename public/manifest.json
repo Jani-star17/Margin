@@ -1,0 +1,10 @@
+{
+  "name":"Margin",
+  "short_name":"Margin",
+  "start_url":"/",
+  "display":"standalone",
+  "background_color":"#f7f8fb",
+  "theme_color":"#111827",
+  "description":"Free, ad-free, offline-first book reader.",
+  "icons":[{"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
