@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f6b73">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg">
+<title>Margin</title>
+<style>
+:root{--bg:#eef0f2;--ink:#1f2933;--mute:#66727e;--card:#fff;--line:#d5dade;--acc:#0f6b73;--on:#fff;--fs:19px}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#14181c;--ink:#dde3e8;--mute:#8b98a4;--card:#1d2328;--line:#2c343b;--acc:#4fb8c1;--on:#0b1e20}}
+:root[data-theme=dark]{--bg:#14181c;--ink:#dde3e8;--mute:#8b98a4;--card:#1d2328;--line:#2c343b;--acc:#4fb8c1;--on:#0b1e20}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.wrap{max-width:640px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 16px 90px}
+h1{font-family:Georgia,serif;margin:6px 0 2px}
+.mute{color:var(--mute)}
+.tabs{display:flex;gap:6px;margin:14px 0;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}
+.tabs button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);border-radius:8px;font-weight:600}
+.tabs button[aria-selected=true]{background:var(--acc);color:var(--on);border-color:var(--acc)}
+.item{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
+.item .m{flex:1;min-width:0;text-align:left;background:none;border:0;padding:0}
+.item b{display:block;font-family:Georgia,serif}
+.item small{color:var(--mute)}
+.btn{background:var(--acc);color:var(--on);border:0;border-radius:8px;padding:9px 14px;font-weight:600}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.f input,.f select,.f textarea{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px}
+.f textarea{min-height:180px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.row input,.row select{flex:1;min-width:120px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px}
+#reader{display:none;position:fixed;inset:0;background:var(--bg);overflow:auto;z-index:5}
+.bar{position:sticky;top:0;display:flex;gap:6px;align-items:center;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar .t{flex:1;min-width:0;text-align:center;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar button{min-width:40px;height:38px;background:none;border:1px solid var(--line);border-radius:8px}
+article{max-width:34rem;margin:0 auto;padding:24px 20px 80px;font-family:Georgia,serif;line-height:1.75;font-size:var(--fs)}
+article p{margin:0 0 1.1em}
+#pdf{width:100%;height:calc(100vh - 60px);border:0}
+#pb{position:fixed;left:0;bottom:0;height:4px;width:0;background:var(--acc);z-index:6}
+#toast{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));background:var(--ink);color:var(--bg);padding:12px;border-radius:10px;display:none;z-index:9;text-align:center}
+</style>
+</head>
+<body>
+<main class="wrap" id="home">
+  <h1>Margin</h1>
+  <div class="mute">Free. No ads. Download once, read anywhere.</div>
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="shelf" aria-selected="true">My shelf</button>
+    <button role="tab" data-tab="find" aria-selected="false">Find books</button>
+    <button role="tab" data-tab="write" aria-selected="false">Write</button>
+  </div>
+
+  <section id="shelf"></section>
+
+  <section id="find" hidden>
+    <div class="row">
+      <input id="q" placeholder="Search title or author" aria-label="Search">
+      <select id="src" aria-label="Source">
+        <option value="community">Community</option>
+        <option value="gutenberg">Free classics</option>
+      </select>
+    </div>
+    <div class="row" id="catrow">
+      <select id="cat" aria-label="Category">
+        <option value="">All categories</option>
+        <option value="school">School</option>
+        <option value="college">College</option>
+        <option value="fiction">Fiction</option>
+        <option value="nonfiction">Non-fiction</option>
+        <option value="other">Other</option>
+      </select>
+      <button class="btn" id="go">Search</button>
+    </div>
+    <div id="results"></div>
+  </section>
+
+  <section id="write" hidden class="f">
+    <input id="wt" placeholder="Title" aria-label="Title">
+    <input id="wa" placeholder="Your name (optional)" aria-label="Author">
+    <select id="wc" aria-label="Category">
+      <option value="fiction">Fiction</option><option value="nonfiction">Non-fiction</option>
+      <option value="school">School</option><option value="college">College</option><option value="other">Other</option>
+    </select>
+    <textarea id="wx" placeholder="Write or paste your book here" aria-label="Book text"></textarea>
+    <div class="row">
+      <button class="btn" id="pub">Publish for everyone</button>
+      <button class="btn alt" id="mine">Save to my shelf</button>
+    </div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+    <p class="mute">Import a file from your device (.txt or .pdf) to read offline.</p>
+    <input type="file" id="imp" accept=".txt,.pdf,text/plain,application/pdf">
+  </section>
+</main>
+
+<div id="reader">
+  <div class="bar">
+    <button id="back" aria-label="Back">‹</button>
+    <div class="t" id="rt"></div>
+    <button id="sm" aria-label="Smaller text">A−</button>
+    <button id="lg" aria-label="Larger text">A+</button>
+    <button id="th" aria-label="Toggle theme">◐</button>
+  </div>
+  <div id="body"></div>
+</div>
+<div id="pb"></div>
+<div id="toast" role="status"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const read = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } };
+
+let tt; function toast(m) { const t = $("toast"); t.textContent = m; t.style.display = "block"; clearTimeout(tt); tt = setTimeout(() => t.style.display = "none", 3500); }
+
+const dbp = new Promise((res, rej) => {
+  const r = indexedDB.open("margin", 1);
+  r.onupgradeneeded = () => r.result.createObjectStore("books", { keyPath: "id" });
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+});
+async function tx(mode, fn) {
+  const d = await dbp;
+  return new Promise((res, rej) => { const q = fn(d.transaction("books", mode).objectStore("books")); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); });
+}
+const allBooks = () => tx("readonly", s => s.getAll());
+const getBook = id => tx("readonly", s => s.get(id));
+const putBook = b => tx("readwrite", s => s.put(b));
+const delBook = id => tx("readwrite", s => s.delete(id));
+
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
+  ["shelf", "find", "write"].forEach(t => $(t).hidden = t !== b.dataset.tab);
+  if (b.dataset.tab === "shelf") renderShelf();
+});
+
+function h(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  Object.entries(attrs).forEach(([k, v]) => k.startsWith("on") ? e[k] = v : e.setAttribute(k, v));
+  kids.forEach(k => e.append(k));
+  return e;
+}
+function row(title, sub, actions, onOpen) {
+  const m = h("button", { class: "m" }, h("b", {}, title), h("small", {}, sub));
+  m.onclick = onOpen;
+  return h("div", { class: "item" }, m, ...actions);
+}
+const btn = (label, fn, alt) => h("button", { class: "btn" + (alt ? " alt" : ""), onclick: fn }, label);
+
+async function renderShelf() {
+  const list = (await allBooks()).sort((a, b) => (b.added || 0) - (a.added || 0));
+  const s = $("shelf"); s.textContent = "";
+  if (!list.length) { s.append(h("p", { class: "mute" }, "Your shelf is empty. Find a book, or import a file, and it will open here without internet.")); return; }
+  list.forEach(b => {
+    const pct = Math.round((b.pos || 0) * 100);
+    s.append(row(b.title, (b.author || "Unknown") + (pct ? " · " + pct + "%" : ""),
+      [btn("Delete", async () => { if (confirm("Remove this book from your device?")) { await delBook(b.id); renderShelf(); } }, true)],
+      () => openBook(b.id)));
+  });
+}
+
+$("src").onchange = () => $("catrow").querySelector("#cat").style.display = $("src").value === "community" ? "" : "none";
+$("go").onclick = search; $("q").onkeydown = e => { if (e.key === "Enter") search(); };
+async function search() {
+  const box = $("results"); box.textContent = "Searching…";
+  try {
+    const q = $("q").value.trim();
+    const items = $("src").value === "community" ? await searchCommunity(q) : await searchGutenberg(q);
+    box.textContent = "";
+    if (!items.length) box.append(h("p", { class: "mute" }, "No books found."));
+    items.forEach(it => box.append(row(it.title, it.author + (it.tag ? " · " + it.tag : ""),
+      [btn("Save", () => saveOffline(it))], async () => { const b = await it.load(); await putBook(b); openBook(b.id); })));
+  } catch (e) { box.textContent = "You appear to be offline, or the search failed. Your saved books still work."; }
+}
+async function searchCommunity(q) {
+  const r = await fetch("/api/books?q=" + encodeURIComponent(q) + "&category=" + $("cat").value);
+  return (await r.json()).map(b => ({
+    title: b.title, author: b.author || "Anonymous", tag: b.category,
+    load: async () => { const f = await (await fetch("/api/books/" + b.id)).json(); return { id: "c" + b.id, title: f.title, author: f.author, kind: "text", text: f.text, added: Date.now() }; }
+  }));
+}
+async function searchGutenberg(q) {
+  const u = "https://gutendex.com/books?search=" + encodeURIComponent(q);
+  const j = await (await fetch("/api/proxy?url=" + encodeURIComponent(u))).json();
+  return j.results.filter(b => b.formats["text/plain; charset=utf-8"] || b.formats["text/plain"]).map(b => ({
+    title: b.title, author: (b.authors[0] && b.authors[0].name) || "Unknown", tag: "public domain",
+    load: async () => {
+      const url = b.formats["text/plain; charset=utf-8"] || b.formats["text/plain"];
+      const t = await (await fetch("/api/proxy?url=" + encodeURIComponent(url))).text();
+      return { id: "g" + b.id, title: b.title, author: (b.authors[0] && b.authors[0].name) || "", kind: "text", text: t, added: Date.now() };
+    }
+  }));
+}
+async function saveOffline(it) {
+  try { toast("Downloading…"); const b = await it.load(); await putBook(b); toast("Saved. Reads offline now."); }
+  catch (e) { toast("Download failed. Check your connection."); }
+}
+
+function draft() { return { title: $("wt").value.trim(), author: $("wa").value.trim(), category: $("wc").value, text: $("wx").value.trim() }; }
+$("mine").onclick = async () => {
+  const d = draft(); if (!d.title || !d.text) return toast("Add a title and some text.");
+  await putBook({ id: "u" + Date.now(), title: d.title, author: d.author, kind: "text", text: d.text, added: Date.now() });
+  toast("Saved to your shelf."); $("wt").value = $("wx").value = "";
+};
+$("pub").onclick = async () => {
+  const d = draft(); if (!d.title || !d.text) return toast("Add a title and some text.");
+  try {
+    const r = await fetch("/api/books", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(d) });
+    const j = await r.json(); if (!r.ok) return toast(j.error || "Couldn't publish.");
+    toast("Published. Everyone can read it now."); $("wt").value = $("wx").value = "";
+  } catch (e) { toast("You're offline. Publish when you're connected."); }
+};
+$("imp").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const name = f.name.replace(/\.(txt|pdf)$/i, "");
+  const b = /pdf$/i.test(f.name) ? { kind: "pdf", blob: f } : { kind: "text", text: await f.text() };
+  await putBook({ id: "i" + Date.now(), title: name, author: "", added: Date.now(), ...b });
+  toast("Imported to your shelf."); e.target.value = "";
+};
+
+let cur = null, pdfUrl = null, fs = read("fs", 19), save;
+document.documentElement.style.setProperty("--fs", fs + "px");
+if (read("theme", "")) document.documentElement.dataset.theme = read("theme", "");
+async function openBook(id) {
+  cur = await getBook(id); if (!cur) return;
+  $("rt").textContent = cur.title; const body = $("body"); body.textContent = "";
+  if (cur.kind === "pdf") {
+    pdfUrl = URL.createObjectURL(cur.blob);
+    body.append(h("iframe", { id: "pdf", src: pdfUrl, title: cur.title }));
+  } else {
+    const a = h("article", {}, h("h1", {}, cur.title));
+    cur.text.split(/\r?\n\s*\r?\n/).forEach(p => { p = p.replace(/\r?\n/g, " ").trim(); if (p) a.append(h("p", {}, p)); });
+    body.append(a);
+  }
+  $("reader").style.display = "block"; $("home").style.display = "none";
+  requestAnimationFrame(() => { const r = $("reader"); r.scrollTop = (cur.pos || 0) * (r.scrollHeight - r.clientHeight); });
+}
+$("reader").addEventListener("scroll", () => {
+  const r = $("reader"), max = r.scrollHeight - r.clientHeight; if (!cur || max <= 0) return;
+  const f = Math.min(1, r.scrollTop / max); $("pb").style.width = f * 100 + "%"; cur.pos = f;
+  clearTimeout(save); save = setTimeout(() => cur && cur.kind === "text" && putBook(cur), 400);
+});
+$("back").onclick = async () => {
+  if (cur && cur.kind === "text") await putBook(cur);
+  if (pdfUrl) URL.revokeObjectURL(pdfUrl); pdfUrl = null; cur = null;
+  $("reader").style.display = "none"; $("home").style.display = "block"; $("pb").style.width = 0; renderShelf();
+};
+const size = d => { fs = Math.max(14, Math.min(30, fs + d)); document.documentElement.style.setProperty("--fs", fs + "px"); store("fs", fs); };
+$("sm").onclick = () => size(-2); $("lg").onclick = () => size(2);
+$("th").onclick = () => {
+  const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme:dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark"; store("theme", r.dataset.theme);
+};
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
+renderShelf();
+</script>
+</body>
+</html>
